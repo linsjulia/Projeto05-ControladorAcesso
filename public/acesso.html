@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controle de Acesso | Fatec</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f5f9;
+        color: #172033;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        margin: 0;
+        padding: 20px;
+      }
+      .card {
+        background: white;
+        width: min(100%, 440px);
+        padding: 32px;
+        border-radius: 14px;
+        box-shadow: 0 12px 35px #16233a18;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+      }
+      p {
+        color: #5c6678;
+        line-height: 1.5;
+      }
+      .tag {
+        color: #1257a6;
+        font-weight: bold;
+        font-size: 12px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      label {
+        display: block;
+        font-weight: bold;
+        margin: 22px 0 8px;
+      }
+      input {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #cbd3df;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+      button {
+        margin-top: 16px;
+        width: 100%;
+        padding: 13px;
+        border: 0;
+        border-radius: 8px;
+        background: #1459a6;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0e427e;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+      #resultado {
+        margin-top: 18px;
+        padding: 13px;
+        border-radius: 8px;
+        display: none;
+        line-height: 1.5;
+      }
+      #resultado.ok {
+        display: block;
+        background: #e6f7ed;
+        color: #17683a;
+      }
+      #resultado.erro {
+        display: block;
+        background: #fff0f0;
+        color: #a11c2a;
+      }
+      .voltar {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        color: #1459a6;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <span class="tag">Fatec · Portaria</span>
+      <h1>Controle de acesso</h1>
+      <p>
+        Informe o e-mail cadastrado para confirmar se você é aluno(a) da Fatec.
+      </p>
+      <form id="formAcesso">
+        <label for="email">E-mail do aluno</label
+        ><input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="aluno@exemplo.com"
+          required
+        /><button id="botao" type="submit">Verificar acesso</button>
+      </form>
+      <div id="resultado" role="status" aria-live="polite"></div>
+      <a class="voltar" href="/">Voltar ao menu</a>
+    </main>
+    <script>
+      const form = document.getElementById("formAcesso"),
+        resultado = document.getElementById("resultado"),
+        botao = document.getElementById("botao");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        botao.disabled = true;
+        botao.textContent = "Verificando...";
+        resultado.className = "";
+        resultado.style.display = "none";
+        try {
+          const resposta = await fetch("/api/acesso", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: document.getElementById("email").value,
+            }),
+          });
+          const dados = await resposta.json();
+          resultado.textContent = dados.mensagem;
+          resultado.className = dados.permitido ? "ok" : "erro";
+          resultado.style.display = "block";
+        } catch {
+          resultado.textContent =
+            "Não foi possível consultar o sistema. Tente novamente.";
+          resultado.className = "erro";
+          resultado.style.display = "block";
+        } finally {
+          botao.disabled = false;
+          botao.textContent = "Verificar acesso";
+        }
+      });
+    </script>
+  </body>
+</html>
